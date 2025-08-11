@@ -51,6 +51,21 @@ replicate' n a = take n $ repeat a
 vCar :: Double -> [Double]
 vCar v0 = iterate (\x -> x + 5.0) v0
 
+-- 6.12 map
+--
+map' :: (a -> b) -> [a] -> [b]
+map' f x = [ f n | n <- x ]
+
+-- 6.13 filter
+--
+filter' :: (a -> Bool) -> [a] -> [a]
+filter' f x = [ n | n <- x, f n ]
+
+-- 6.14 average
+-- using fromIntergral on sum messes this up
+--
+average :: [Double] -> Double
+average x = sum x / (fromIntegral $ length x)
 
 -- something else
 
