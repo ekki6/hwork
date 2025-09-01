@@ -69,6 +69,30 @@ average x = sum x / (fromIntegral $ length x)
 
 -- something else
 
+-- 6.16 ugh
+-- f! this stupid shit needs to work, but I'm
+-- unable to put the dt inside the function,
+-- maybe as I look at more examples
+
+
+type R = Double
+
+dt :: R
+   -> R
+   -> R
+   -> R
+dt n a b = ((b - a) / n)
+
+trapIntegrate   :: R            --dt
+                -> (R -> R)     --function f
+                -> R            --lower limit a
+                -> R            --upper limit b
+                -> R            --result
+
+trapIntegrate dt f a b = sum [(1/2)*(f t + f (t+dt))*dt |
+                             t <- [a, a+dt..(b - dt)]]
+
+-------------------------------
 
 sinDeg :: Double -> Double
 sinDeg x = sin ( pi * x /180)
