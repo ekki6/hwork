@@ -1,3 +1,4 @@
+-- stuff added to test git
 -- ch6x.hs compared to ch6.hs this one subsumes dt into 
 -- trapIntegrate, and oddly enough it works
 
