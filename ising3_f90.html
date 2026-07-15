@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>~/fortran/is3.f90.html</title>
+<meta name="Generator" content="Vim/9.1">
+<meta name="plugin-version" content="vim9.0_v2">
+<meta name="syntax" content="fortran">
+<meta name="settings" content="use_css,no_foldcolumn,expand_tabs,pre_wrap,prevent_copy=,use_input_for_pc=none">
+<meta name="colorscheme" content="none">
+<style>
+<!--
+pre { white-space: pre-wrap; font-family: monospace; color: #ffffff; background-color: #000000; }
+body { font-family: monospace; color: #ffffff; background-color: #000000; }
+* { font-size: 1em; }
+.Identifier { color: #00ffff; font-weight: bold; }
+.PreProc { color: #5fd7ff; }
+.Type { color: #87ffaf; }
+.Statement { color: #ffff00; }
+.Comment { color: #00ffff; }
+.Constant { color: #ff40ff; }
+.Special { color: #ffd7d7; }
+-->
+</style>
+</head>
+<body>
+<pre id='vimCodeElement'>
+<span class="PreProc">program</span> <span class="Identifier">ising</span>
+<span class="Comment">! program to simulate the 2Dising model generating random</span>
+<span class="Comment">! this version moves Hamiltonian calc to user def fn</span>
+<span class="Comment">! it uses four 2-D arrrays:</span>
+<span class="Comment">! s() is the inital spin values</span>
+<span class="Comment">! ju() is J &quot;up&quot; -  the vertical interaction values</span>
+<span class="Comment">! jl() is J &quot;left&quot; -  the horizontal interaction values</span>
+<span class="Comment">! sn() is the new spin values</span>
+<span class="Comment">! uses /dev/urandom so needs some modernish *nix to run</span>
+
+<span class="Type">integer</span>, <span class="Type">parameter</span> :: n <span class="Statement">=</span> <span class="Constant">8</span>
+<span class="Type">character</span> (<span class="Type">len</span><span class="Statement">=</span><span class="Constant">2</span>), <span class="Type">parameter</span>  :: anx<span class="Statement">=</span><span class="Constant">' X'</span>, ano<span class="Statement">=</span><span class="Constant">' O'</span>, anp<span class="Statement">=</span><span class="Constant">' +'</span>,anm<span class="Statement">=</span><span class="Constant">' -'</span>,dsp<span class="Statement">=</span><span class="Constant">'  '</span>
+<span class="Type">integer</span> :: i,j,k,l,delt,up,dn,lf,rt, un, rsd
+<span class="Type">integer</span>, <span class="Type">allocatable</span> :: seed(:)
+<span class="Type">integer</span>, <span class="Type">dimension</span>(n,n) :: s, ju, jl, sn
+<span class="Type">real</span>, <span class="Type">dimension</span>(n,n) :: ss, si, id
+id <span class="Statement">=</span> <span class="Constant">1</span>
+<span class="Comment">!s  = reshape([-1,-1,-1, 1, 1,-1, 1, 1, 1],[n,n])</span>
+<span class="Comment">!ju = reshape([ 1, 1, 1,-1, 1, 1, 1,-1,-1],[n,n])</span>
+<span class="Comment">!jl = reshape([-1, 1, 1, 1, 1,-1,-1,-1,-1],[n,n])</span>
+
+<span class="Statement">call</span> <span class="Identifier">random_seed</span>(<span class="Identifier">size</span><span class="Statement">=</span>rsd)
+<span class="Statement">allocate</span>(seed(rsd))
+<span class="Statement">open</span>(<span class="Statement">newunit</span><span class="Statement">=</span>un, <span class="Statement">file</span><span class="Statement">=</span><span class="Constant">&quot;/dev/urandom&quot;</span>, <span class="Statement">access</span><span class="Statement">=</span><span class="Constant">&quot;stream&quot;</span>,<span class="Statement">form</span><span class="Statement">=</span><span class="Constant">&quot;unformatted&quot;</span>, <span class="Statement">action</span><span class="Statement">=</span><span class="Constant">&quot;read&quot;</span>, <span class="Statement">status</span><span class="Statement">=</span><span class="Constant">&quot;old&quot;</span>,<span class="Statement">iostat</span><span class="Statement">=</span>istat)
+<span class="Statement">read</span>(un) seed
+<span class="Statement">close</span>(un)
+<span class="Statement">call</span> <span class="Identifier">random_seed</span>(put<span class="Statement">=</span>seed)
+
+<span class="Comment">!set random s</span>
+<span class="Statement">call</span> <span class="Identifier">random_number</span>(ss)
+si <span class="Statement">=</span> <span class="Identifier">sign</span>(id,ss <span class="Statement">-</span> <span class="Constant">0.5</span>)
+s <span class="Statement">=</span> <span class="Identifier">int</span>(si)
+
+<span class="Comment">!set random s</span>
+<span class="Statement">call</span> <span class="Identifier">random_number</span>(ss)
+si <span class="Statement">=</span> <span class="Identifier">sign</span>(id,ss <span class="Statement">-</span> <span class="Constant">0.5</span>)
+ju <span class="Statement">=</span> <span class="Identifier">int</span>(si)
+
+<span class="Comment">!set random s</span>
+<span class="Statement">call</span> <span class="Identifier">random_number</span>(ss)
+si <span class="Statement">=</span> <span class="Identifier">sign</span>(id,ss <span class="Statement">-</span> <span class="Constant">0.5</span>)
+jl <span class="Statement">=</span> <span class="Identifier">int</span>(si)
+
+
+sn <span class="Statement">=</span> s
+<span class="Comment">!print *, 's='</span>
+<span class="Comment">!do i = 1,n</span>
+<span class="Comment">!   print *, (s(i,j), j=1,n)</span>
+<span class="Comment">!end do</span>
+<span class="Comment">!print *, 'ju='</span>
+<span class="Comment">!do i = 1,n</span>
+<span class="Comment">!   print *, (ju(i,j), j=1,n)</span>
+<span class="Comment">!end do</span>
+<span class="Comment">!print *, 'jl='</span>
+<span class="Comment">!do i = 1,n</span>
+<span class="Comment">!   print *, (jl(i,j), j=1,n)</span>
+<span class="Comment">!end do</span>
+
+
+<span class="Statement">do</span> <span class="Special">20</span> k<span class="Statement">=</span><span class="Constant">1</span>,n
+<span class="Statement">do</span> <span class="Special">10</span> l<span class="Statement">=</span><span class="Constant">1</span>,n
+
+<span class="Statement">if</span> (k<span class="Statement">-</span><span class="Constant">1</span> <span class="Statement">&lt;</span> <span class="Constant">1</span>) <span class="Statement">then</span>
+   up <span class="Statement">=</span> s(n,l)<span class="Statement">*</span>ju(k,l)
+<span class="Statement">else</span>
+   up <span class="Statement">=</span> s(k<span class="Statement">-</span><span class="Constant">1</span>,l)<span class="Statement">*</span>ju(k,l)
+<span class="Statement">end if</span>
+
+<span class="Statement">if</span> (k<span class="Statement">+</span><span class="Constant">1</span> <span class="Statement">&gt;</span> n) <span class="Statement">then</span>
+   dn <span class="Statement">=</span> s(<span class="Constant">1</span>,l)<span class="Statement">*</span>ju(<span class="Constant">1</span>,l)
+<span class="Statement">else</span>
+   dn <span class="Statement">=</span> s(k<span class="Statement">+</span><span class="Constant">1</span>,l)<span class="Statement">*</span>ju(k<span class="Statement">+</span><span class="Constant">1</span>,l)
+<span class="Statement">end if</span>
+
+<span class="Statement">if</span> (l<span class="Statement">-</span><span class="Constant">1</span> <span class="Statement">&lt;</span> <span class="Constant">1</span>) <span class="Statement">then</span>
+   lf <span class="Statement">=</span> s(k,n)<span class="Statement">*</span>jl(k,l)
+<span class="Statement">else</span>
+   lf <span class="Statement">=</span> s(k,l<span class="Statement">-</span><span class="Constant">1</span>)<span class="Statement">*</span>jl(k,l)
+<span class="Statement">end if</span>
+
+<span class="Statement">if</span> (l<span class="Statement">+</span><span class="Constant">1</span> <span class="Statement">&gt;</span> n) <span class="Statement">then</span>
+   rt <span class="Statement">=</span> s(k,<span class="Constant">1</span>)<span class="Statement">*</span>jl(k,<span class="Constant">1</span>)
+<span class="Statement">else</span>
+   rt <span class="Statement">=</span> s(k,l<span class="Statement">+</span><span class="Constant">1</span>)<span class="Statement">*</span>jl(k,l<span class="Statement">+</span><span class="Constant">1</span>)
+<span class="Statement">end if</span>
+
+delt <span class="Statement">=</span> up <span class="Statement">+</span> dn <span class="Statement">+</span> lf <span class="Statement">+</span>rt
+
+<span class="Statement">if</span> (delt <span class="Statement">&gt;</span> <span class="Constant">0</span>) <span class="Statement">then</span>
+   sn(k,l) <span class="Statement">=</span> <span class="Constant">1</span>
+<span class="Statement">else</span> <span class="Statement">if</span> (delt <span class="Statement">&lt;</span> <span class="Constant">0</span>) <span class="Statement">then</span>
+   sn(k,l) <span class="Statement">=</span> <span class="Statement">-</span><span class="Constant">1</span>
+<span class="Statement">else</span>
+   sn(k,l) <span class="Statement">=</span> s(k,l)
+<span class="Statement">end if</span>
+
+<span class="Comment">!print *, 'up= ', up</span>
+<span class="Comment">!print *, 'dn= ', dn</span>
+<span class="Comment">!print *, 'lf= ', lf</span>
+<span class="Comment">!print *, 'rt= ', rt</span>
+<span class="Comment">!print *, 'delt= ', delt</span>
+<span class="Comment">!print *, 'sn',k,l,'=', sn(k,l)</span>
+
+
+<span class="Special">10</span> <span class="Statement">continue</span>
+<span class="Special">20</span> <span class="Statement">continue</span>
+
+
+
+
+<span class="Comment">!print *, 'sn='</span>
+<span class="Comment">!do i = 1,n</span>
+<span class="Comment">!   print *, (sn(i,j), j=1,n)</span>
+<span class="Comment">!end do</span>
+
+<span class="Statement">do</span> i <span class="Statement">=</span> <span class="Constant">1</span>,n
+   <span class="Statement">print</span> <span class="Statement">*</span>, (pnm(jl(i,j))<span class="Statement">//</span>xno(s(i,j)), j<span class="Statement">=</span><span class="Constant">1</span>,n)
+   <span class="Statement">print</span> <span class="Statement">*</span>, (dsp<span class="Statement">//</span>pnm(ju(i,j)), j<span class="Statement">=</span><span class="Constant">1</span>,n)
+<span class="Statement">end do</span>
+
+<span class="Statement">print</span> <span class="Statement">*</span>, <span class="Constant">'function first H= '</span>, hamiltonian(s,ju,jl)
+
+<span class="Statement">do</span> i <span class="Statement">=</span> <span class="Constant">1</span>,n
+   <span class="Statement">print</span> <span class="Statement">*</span>, (pnm(jl(i,j))<span class="Statement">//</span>xno(sn(i,j)), j<span class="Statement">=</span><span class="Constant">1</span>,n)
+   <span class="Statement">print</span> <span class="Statement">*</span>, (dsp<span class="Statement">//</span>pnm(ju(i,j)), j<span class="Statement">=</span><span class="Constant">1</span>,n)
+<span class="Statement">end do</span>
+
+<span class="Statement">print</span> <span class="Statement">*</span>, <span class="Constant">'function new H= '</span>, hamiltonian(sn,ju,jl)
+
+<span class="Statement">contains</span>
+
+<span class="Comment">!calculate H ----------------------------------</span>
+
+<span class="Type">integer</span> <span class="PreProc">function</span> <span class="Identifier">hamiltonian</span>(hs,hu,hl)
+   <span class="Type">implicit none</span>
+   <span class="Type">integer</span>, <span class="Type">dimension</span>(n,n), <span class="Type">intent</span>(<span class="Type">in</span>) :: hs,hu,hl
+   <span class="Type">integer</span> :: p,q, hh
+
+
+hh <span class="Statement">=</span> <span class="Constant">0</span>
+
+<span class="Comment">!the up Js</span>
+<span class="Statement">do</span> <span class="Special">120</span> p<span class="Statement">=</span><span class="Constant">1</span>,n
+<span class="Statement">do</span> <span class="Special">110</span> q<span class="Statement">=</span><span class="Constant">1</span>,n
+
+<span class="Statement">if</span> (p<span class="Statement">==</span><span class="Constant">1</span>) <span class="Statement">then</span>
+   hh <span class="Statement">=</span> hh <span class="Statement">-</span> hs(n,q)<span class="Statement">*</span>hu(p,q)<span class="Statement">*</span>hs(p,q)
+<span class="Statement">else</span>
+   hh <span class="Statement">=</span> hh <span class="Statement">-</span> hs(p<span class="Statement">-</span><span class="Constant">1</span>,q)<span class="Statement">*</span>hu(p,q)<span class="Statement">*</span>hs(p,q)
+<span class="Statement">end if</span>
+
+
+<span class="Special">110</span> <span class="Statement">continue</span>
+<span class="Special">120</span> <span class="Statement">continue</span>
+
+<span class="Comment">!the left Js</span>
+<span class="Statement">do</span> <span class="Special">140</span> p<span class="Statement">=</span><span class="Constant">1</span>,n
+<span class="Statement">do</span> <span class="Special">130</span> q<span class="Statement">=</span><span class="Constant">1</span>,n
+
+<span class="Statement">if</span> (q<span class="Statement">==</span><span class="Constant">1</span>) <span class="Statement">then</span>
+   hh <span class="Statement">=</span> hh <span class="Statement">-</span> hs(p,n)<span class="Statement">*</span>hl(p,q)<span class="Statement">*</span>hs(p,q)
+<span class="Statement">else</span>
+   hh <span class="Statement">=</span> hh <span class="Statement">-</span> hs(p,q<span class="Statement">-</span><span class="Constant">1</span>)<span class="Statement">*</span>hl(p,q)<span class="Statement">*</span>hs(p,q)
+<span class="Statement">end if</span>
+
+<span class="Special">130</span> <span class="Statement">continue</span>
+<span class="Special">140</span> <span class="Statement">continue</span>
+
+hamiltonian <span class="Statement">=</span> hh
+
+<span class="PreProc">end function</span> <span class="Identifier">hamiltonian</span>
+
+<span class="Comment">!end calculate H</span>
+
+<span class="Type">character</span> (<span class="Type">len</span><span class="Statement">=</span><span class="Constant">2</span>) <span class="PreProc">function</span> <span class="Identifier">xno</span>(a)
+   <span class="Type">implicit none</span>
+   <span class="Type">integer</span>, <span class="Type">intent</span>(<span class="Type">in</span>) :: a
+   <span class="Type">character</span> (<span class="Type">len</span><span class="Statement">=</span><span class="Constant">2</span>) :: xnov
+
+<span class="Statement">if</span> (a <span class="Statement">==</span> <span class="Constant">1</span>) <span class="Statement">then</span>
+   xnov <span class="Statement">=</span> ano
+<span class="Statement">else</span>
+   xnov <span class="Statement">=</span> anx
+<span class="Statement">end if</span>
+
+xno <span class="Statement">=</span> xnov
+
+<span class="PreProc">end function</span> <span class="Identifier">xno</span>
+
+<span class="Type">character</span> (<span class="Type">len</span><span class="Statement">=</span><span class="Constant">2</span>) <span class="PreProc">function</span> <span class="Identifier">pnm</span>(a)
+   <span class="Type">implicit none</span>
+   <span class="Type">integer</span>, <span class="Type">intent</span>(<span class="Type">in</span>) :: a
+   <span class="Type">character</span> (<span class="Type">len</span><span class="Statement">=</span><span class="Constant">2</span>) :: pnmv
+
+<span class="Statement">if</span> (a <span class="Statement">==</span> <span class="Constant">1</span>) <span class="Statement">then</span>
+   pnmv <span class="Statement">=</span> anp
+<span class="Statement">else</span>
+   pnmv <span class="Statement">=</span> anm
+<span class="Statement">end if</span>
+
+pnm <span class="Statement">=</span> pnmv
+
+<span class="PreProc">end function</span> <span class="Identifier">pnm</span>
+
+
+<span class="PreProc">end program</span>
+
+
+</pre>
+</body>
+</html>
+<!-- vim: set foldmethod=manual : -->
