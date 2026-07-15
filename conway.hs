@@ -39,3 +39,8 @@ dispGrid g =
           ]
         | row <- g
         ]
+
+cellAt :: Grid -> Int -> Int -> Cell
+
+cellAt g x y =
+    Dead
