@@ -12,7 +12,11 @@ isntDivBy x y = rem x y /= 0
 isPrime :: Int -> Bool
 isPrime x = 
 --    all (\p -> rem x p /= 0) lprimes
-    all instDivBy lprimes
+    all (isntDivBy x) lprimes
 
-pushLprimes :: a -> [a]
-pushLprimes 
+--pushLprimes :: a -> [a]
+--pushLprimes 
+
+primesBelow :: Int -> [Int]
+primesBelow n = [x | x <- [2..n-1], isPrime x]
+
