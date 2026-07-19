@@ -14,9 +14,19 @@ isPrime x =
 --    all (\p -> rem x p /= 0) lprimes
     all (isntDivBy x) lprimes
 
+isPrime2 :: Int -> Bool
+isPrime2 x = 
+--    all (\p -> rem x p /= 0) lprimes
+    all (isntDivBy x) [2..(floor (sqrt (fromIntegral x)))]
+
 --pushLprimes :: a -> [a]
 --pushLprimes 
 
 primesBelow :: Int -> [Int]
 primesBelow n = [x | x <- [2..n-1], isPrime x]
 
+omniPrimes :: [Int]
+omniPrimes = filter isPrime2 [2..]
+
+primesUnder ::  Int -> [Int]
+primesUnder n = takeWhile (<n) omniPrimes
