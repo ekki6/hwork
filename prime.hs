@@ -30,3 +30,5 @@ omniPrimes = filter isPrime2 [2..]
 
 primesUnder ::  Int -> [Int]
 primesUnder n = takeWhile (<n) omniPrimes
+
+-- length $ primesUnder 2026 will tell you the length
