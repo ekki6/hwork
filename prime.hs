@@ -32,3 +32,6 @@ primesUnder ::  Int -> [Int]
 primesUnder n = takeWhile (<n) omniPrimes
 
 -- length $ primesUnder 2026 will tell you the length
+-- step 1 - see if number is in primes list
+-- subtract that number from 2026 -> 2026 -n
+--
