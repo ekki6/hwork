@@ -4,5 +4,5 @@
 diTest :: Integer -> Integer -> Integer
 diTest d y = d * y * y + 1
 
---testSqr :: Integer -> Double
---testSqr x = floor (sqrt (x :: Double)) 
+testSqr :: Integer -> Integer
+testSqr x = floor (sqrt (fromIntegral x :: Double)) 
