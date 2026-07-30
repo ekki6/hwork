@@ -30,5 +30,24 @@ hexToFour c = error ("Not a hex digit" ++ [c])
 fourHash :: String -> String
 fourHash = concatMap hexToFour
 
+hash4 :: String
+hash4 = fourHash hsh
 
+plainText :: String
+plainText = "here is some text"
 
+plainLen :: Int
+plainLen = length plainText
+
+mixy119 :: [Char] -> Int
+mixy119 x = mod (sum $ map fromEnum x) 119
+-- or from chatGPT: mixy119 = (`mod` 119) . sum . map fromEnum
+
+mixVal :: Int
+mixVal = mixy119 plainText
+
+hash4Val :: Int -> Int
+hash4Val x = fromEnum (hash4 !! x) - fromEnum '0'
+
+churn :: Int -> Int
+churn x = mixVal + x
