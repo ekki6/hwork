@@ -85,3 +85,4 @@ pairs _ = error "pairs: odd-length string"
 
 churnHex :: String
 churnHex = map fourToHex (pairs churnHash)
+
