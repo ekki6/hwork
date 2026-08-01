@@ -1,4 +1,10 @@
 -- kubgen in haskell
+-- change plainText to the text you want to hash
+-- to dispaly the kubgen numbers:
+-- main = mapM_ putStrLn (krows churnHash)
+-- to dispaly the kubgen  picture:
+-- main = mapM_ putStrLn (krows kpicture)
+
 
 hsh :: String
 hsh= concat
@@ -86,3 +92,20 @@ pairs _ = error "pairs: odd-length string"
 churnHex :: String
 churnHex = map fourToHex (pairs churnHash)
 
+krows :: String -> [String]
+krows [] = []
+krows xs = take 16 xs : krows (drop 16 xs)
+
+--main = mapM_ putStrLn (krows churnHash)
+
+glyph :: Char -> Char
+glyph '0' = ' '
+glyph '1' = '.'
+glyph '2' = 'o'
+glyph '3' = '#'
+glyph  _  = '?'
+
+kpicture :: String
+kpicture = map glyph churnHash
+
+--main = mapM_ putStrLn (krows kpictire)
