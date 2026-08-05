@@ -6,6 +6,8 @@
 -- main = mapM_ putStrLn (krows kpicture)
 
 
+-- hsh is the sort of initialization vector for the hash
+-- it's a 128 digit hex.  I forget where it came from
 hsh :: String
 hsh= concat
     [ "7ef0742612e4db668ea2a7b5779f69cf"
@@ -14,6 +16,9 @@ hsh= concat
     , "31e897029c54c20f57a31e8e23f452f"
     ]
 
+-- this converts a hex digit to base 4 for the
+-- 'fourhash' I know it's not elegant but it's
+-- clear :)
 hexToFour :: Char -> [Char]
 hexToFour '0' = "00"
 hexToFour '1' = "01"
@@ -33,6 +38,7 @@ hexToFour 'e' = "32"
 hexToFour 'f' = "33"
 hexToFour c = error ("Not a hex digit" ++ [c])
 
+-- converts back to hex digit
 fourToHex :: String -> Char
 fourToHex "00" = '0'
 fourToHex "01" = '1'
@@ -52,9 +58,11 @@ fourToHex "32" = 'e'
 fourToHex "33" = 'f'
 fourToHex c = error ("Not expected kubgen fourSet" ++ c)
 
+-- makes the fourhash
 fourHash :: String -> String
 fourHash = concatMap hexToFour
 
+-- constant, the init vector's hash
 hash4 :: String
 hash4 = fourHash hsh
 
