@@ -1,4 +1,6 @@
 -- kubgen in haskell
+-- updated for RFNG-2 hash (Robbie's Fragile
+-- Number Garden version 2) :)
 -- change plainText to the text you want to hash
 -- to dispaly the kubgen numbers:
 -- main = mapM_ putStrLn (krows churnHash)
