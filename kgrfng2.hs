@@ -1,6 +1,14 @@
 -- kubgen in haskell
+
 -- updated for RFNG-2 hash (Robbie's Fragile
 -- Number Garden version 2) :)
+
+-- this should track changes in kg4.html
+-- RFNG-2 change one, mod 4hash index by 256, not 127
+-- RFNG-2 change mixy119 = sum %119 replaced with
+-- mixy2 = (sum *3 + 119 + plainLength) mod 256
+
+
 -- change plainText to the text you want to hash
 -- to dispaly the kubgen numbers:
 -- main = mapM_ putStrLn (krows churnHash)
@@ -14,8 +22,8 @@ hsh :: String
 hsh= concat
     [ "7ef0742612e4db668ea2a7b5779f69cf"
     , "13762b48d36812fd72eda69207460a71"
-    , "d2e2c901b8f46991249bd566e98b9e2b"
-    , "31e897029c54c20f57a31e8e23f452f"
+    , "bd2e2c901b8f46991249bd566e98b9e2"
+    , "b31e897029c54c20f57a31e8e23f452f"
     ]
 
 -- this converts a hex digit to base 4 for the
@@ -75,14 +83,15 @@ plainLen :: Int
 plainLen = length plainText
 
 -- mixy converts all charaters to their code numbers,
--- sums them and then mods it with 119
-mixy119 :: [Char] -> Int
-mixy119 x = mod (sum $ map fromEnum x) 119
+-- sums them multiplies by 3, adds 119 and plaintext
+-- length then mods by 256
+mixy2 :: [Char] -> Int
+mixy2 x = mod ((sum $ map fromEnum x) * 3 + 119 + length x) 256
 -- or from chatGPT: mixy119 = (`mod` 119) . sum . map fromEnum
 
 -- the static mixy value we will use for this string
 mixVal :: Int
-mixVal = mixy119 plainText
+mixVal = mixy2 plainText
 
 -- takes a digit from a fourhash and returns a number 0..3
 hash4Val :: Int -> Int
@@ -94,13 +103,12 @@ plainVal :: Int -> Int
 plainVal x = fromEnum (plainText !! x)
 
 -- main hash functions, steps through the 256 values of
--- of the initial fourhash vector (really, because of 
--- mod 127 does less than half) and takes the xth value
+-- of the initial fourhash vector and takes the xth value
 -- of the plain text, adds the init 4hash with index
--- offset by mixy, adds mixy, and adds 1 and does mod 4
--- producing a 0 through 3
+-- offset by mixy and mod 256, adds mixy, and adds 1 and
+-- does mod 4 producing a 0 through 3
 churn :: Int -> Int
-churn x = mod (mixVal + (hash4Val (mod (x +mixVal) 127)) +
+churn x = mod (mixVal + (hash4Val (mod (x +mixVal) 256)) +
     plainVal (mod x plainLen) + 1) 4
 
 -- puts the 256 [0..3]s into a string to be displayed
