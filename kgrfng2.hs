@@ -11,6 +11,11 @@
 
 -- RFNG-2 change, remove the random 1 from churn
 
+-- RFNG-2 split plainVal into plainVals and 
+-- and plainVal and moved the mod plainLen
+-- out of churn, and added an edge case to
+-- plainVal to nicely handle if plainText = ""
+
 
 -- change plainText to the text you want to hash
 -- to dispaly the kubgen numbers:
@@ -103,8 +108,17 @@ hash4Val x = fromEnum (hash4 !! x) - fromEnum '0'
 
 -- takes a character from the plaintext and returns 
 -- its char value
+plainVals :: [Int]
+plainVals
+    | null plainText = [0]
+    | otherwise = map fromEnum plainText
+
 plainVal :: Int -> Int
-plainVal x = fromEnum (plainText !! x)
+plainVal x = plainVals !! mod x (length plainVals)
+
+-- old plainVal
+-- plainVal :: Int -> Int
+-- plainVal x = fromEnum (plainText !! x)
 
 -- main hash functions, steps through the 256 values of
 -- of the initial fourhash vector and takes the xth value
@@ -113,7 +127,12 @@ plainVal x = fromEnum (plainText !! x)
 -- does mod 4 producing a 0 through 3
 churn :: Int -> Int
 churn x = mod (mixVal + (hash4Val (mod (x +mixVal) 256)) +
-    plainVal (mod x plainLen) ) 4
+    plainVal x ) 4
+
+-- old churn
+-- churn :: Int -> Int
+-- churn x = mod (mixVal + (hash4Val (mod (x +mixVal) 256)) +
+--     plainVal (mod x plainLen) ) 4
 
 -- puts the 256 [0..3]s into a string to be displayed
 churnHash :: String
