@@ -5,8 +5,11 @@
 
 -- this should track changes in kg4.html
 -- RFNG-2 change one, mod 4hash index by 256, not 127
+
 -- RFNG-2 change mixy119 = sum %119 replaced with
 -- mixy2 = (sum *3 + 119 + plainLength) mod 256
+
+-- RFNG-2 change, remove the random 1 from churn
 
 
 -- change plainText to the text you want to hash
@@ -78,6 +81,7 @@ hash4 = fourHash hsh
 
 plainText :: String
 plainText = "here is some different text"
+--plainText = ""
 
 plainLen :: Int
 plainLen = length plainText
@@ -109,7 +113,7 @@ plainVal x = fromEnum (plainText !! x)
 -- does mod 4 producing a 0 through 3
 churn :: Int -> Int
 churn x = mod (mixVal + (hash4Val (mod (x +mixVal) 256)) +
-    plainVal (mod x plainLen) + 1) 4
+    plainVal (mod x plainLen) ) 4
 
 -- puts the 256 [0..3]s into a string to be displayed
 churnHash :: String
